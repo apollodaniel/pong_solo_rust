@@ -1,7 +1,8 @@
-use std::time::Instant;
+use std::{time::Instant, process::exit};
 
 use piston::{ButtonEvent, Key, EventLoop};
-use piston_window::{clear, rectangle};
+use piston_window::{clear, rectangle, ellipse};
+use rand::Rng;
 
 fn main() {
 
@@ -26,9 +27,17 @@ fn main() {
     const TILE_SIZE: f64 = WINDOW_HEIGHT / (TILE_COUNT * 2.0);
 
     let mut player_y: f64 = (WINDOW_HEIGHT / 2.0) - (PLAYER_HEIGHT / 2.0); 
-    let mut player_vertical_direction = (false,false);
+    let mut player_x: f64 = 100.0; 
+    let mut player_direction = (false,false,false,false);
     let player_speed = 600.0;
     
+    const BALL_SIZE: f64 = 50.0;
+    let mut ball_x = (WINDOW_WIDTH / 2.0)  - (BALL_SIZE / 2.0);
+    let mut ball_y = (WINDOW_HEIGHT / 2.0)  - (BALL_SIZE / 2.0);
+
+    let mut ball_y_direction = if rand::thread_rng().gen_bool(0.5){1.0}else{-1.0};
+    let mut ball_x_direction = if rand::thread_rng().gen_bool(0.5){1.0}else{-1.0};
+    let mut ball_speed = 300.0;
 
     let mut last_time = Instant::now();
     while let Some(event) = window.next(){
@@ -38,9 +47,9 @@ fn main() {
 
         window.draw_2d(&event, |c,g,_|{
             clear([0.0,0.0,0.0,1.0], g);
-            rectangle([1.0,1.0,1.0,1.0], [100.0,player_y, PLAYER_WIDTH, PLAYER_HEIGHT], c.transform, g);
+            rectangle([1.0,1.0,1.0,1.0], [player_x,player_y, PLAYER_WIDTH, PLAYER_HEIGHT], c.transform, g);
             
-            
+            ellipse([1.0,1.0,1.0,1.0], [ball_x,ball_y, BALL_SIZE, BALL_SIZE], c.transform, g);
             
             for i in 0..TILE_COUNT as usize{
                 rectangle([1.0,1.0,1.0,1.0], [MAX_PLAYER_DISTANCE+30.0, TILE_SIZE*(i*2) as f64, 100.0 / TILE_COUNT, TILE_SIZE], c.transform, g);
@@ -52,34 +61,76 @@ fn main() {
                 match f.state {
                     piston::ButtonState::Press => {
                         match key {
-                            Key::W => player_vertical_direction.1 = true,
-                            Key::S => player_vertical_direction.0 = true,
+                            Key::S => player_direction.0 = true,
+                            Key::W => player_direction.1 = true,
+                            Key::A => player_direction.2 = true,
+                            Key::D => player_direction.3 = true,
                             _ =>{}
                         }
                     }
                     piston::ButtonState::Release=> {
                         match key {
-                            Key::W => player_vertical_direction.1 = false,
-                            Key::S => player_vertical_direction.0 = false,
+                            Key::S => player_direction.0 = false,
+                            Key::W => player_direction.1 = false,
+                            Key::A => player_direction.2 = false,
+                            Key::D => player_direction.3 = false,
                             _ =>{}
                         }
                     }
                 }
             }
         });
-        move_player_y(&mut player_y,
+
+        move_player(&mut player_y,
+            &mut player_x,
             delta_time,
             &player_speed,
-            player_vertical_direction
+            player_direction
         );
+        move_ball(&mut ball_x, &mut ball_y, ball_speed, &mut ball_x_direction, &mut ball_y_direction, delta_time);
     }
 
-    fn move_player_y(player_y: &mut f64, delta_time: f64, player_speed: &f64, player_vertical_direction: (bool, bool)){
-        let player_y_movement = if player_vertical_direction.0 {player_speed * delta_time} else if player_vertical_direction.1 {-(player_speed * delta_time)} else {0.0};
+    fn move_ball(ball_x: &mut f64, ball_y: &mut f64, ball_speed: f64, ball_x_direction: &mut f64,ball_y_direction: &mut f64, delta_time: f64){
+        // ball should invert value when collides with right wall, top, and bottom, and with the player
+        // when interacts with the left wall the game might close
+        let mut ball_x_movement = ball_speed * *ball_x_direction *  delta_time;
+        let mut ball_y_movement = ball_speed * *ball_y_direction *delta_time;
+
+        // horizontal collision
+        if (*ball_x + ball_x_movement) >= (WINDOW_WIDTH - BALL_SIZE) {
+            // when touches right
+            ball_x_movement *= -1.0;
+            *ball_x_direction *= -1.0;
+        }else if (*ball_x + ball_x_movement) <= 0.0{
+            // touches left
+            exit(0);
+        }
         
+        // vertical collision
+        if (*ball_y + ball_y_movement) >= (WINDOW_HEIGHT - BALL_SIZE) || (*ball_y + ball_y_movement) <= 0.0 {
+            // when touches bottom or top
+            ball_y_movement *= -1.0;
+            *ball_y_direction *= -1.0;
+        }
+
+        *ball_x += ball_x_movement;
+        *ball_y += ball_y_movement;
+    }
+
+    fn move_player(player_y: &mut f64, player_x: &mut f64,
+            delta_time: f64, player_speed: &f64,
+            player_vertical_direction: (bool, bool,bool,bool)
+        ){
+        let player_y_movement = if player_vertical_direction.0 {player_speed * delta_time} else if player_vertical_direction.1 {-(player_speed * delta_time)} else {0.0};
+        let player_x_movement = if player_vertical_direction.3 {player_speed * delta_time} else if player_vertical_direction.2 {-(player_speed * delta_time)} else {0.0};
+
         // collisions 
         if (*player_y + player_y_movement) > 0.0 && (*player_y + player_y_movement) < (WINDOW_HEIGHT - PLAYER_HEIGHT){
             *player_y += player_y_movement; 
+        }
+
+        if (*player_x + player_x_movement) > 0.0 && (*player_x + player_x_movement) < (MAX_PLAYER_DISTANCE - PLAYER_WIDTH){
+            *player_x += player_x_movement; 
         }
     }
 
