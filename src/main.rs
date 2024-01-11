@@ -37,7 +37,7 @@ fn main() {
 
     let mut ball_y_direction = if rand::thread_rng().gen_bool(0.5){1.0}else{-1.0};
     let mut ball_x_direction = if rand::thread_rng().gen_bool(0.5){1.0}else{-1.0};
-    let mut ball_speed = 400.0;
+    let ball_speed = 400.0;
 
     let mut last_time = Instant::now();
     while let Some(event) = window.next(){
@@ -87,11 +87,11 @@ fn main() {
             &player_speed,
             player_direction
         );
-        move_ball(&mut ball_x, &mut ball_y, ball_speed, &mut ball_x_direction, &mut ball_y_direction, delta_time,player_x, player_y,player_direction);
+        move_ball(&mut ball_x, &mut ball_y, ball_speed, &mut ball_x_direction, &mut ball_y_direction, delta_time,player_x, player_y);
     }
 
     fn move_ball(ball_x: &mut f64, ball_y: &mut f64, ball_speed: f64, ball_x_direction: &mut f64,ball_y_direction: &mut f64, delta_time: f64, 
-        player_x: f64, player_y: f64, player_direction: (bool, bool, bool, bool)
+        player_x: f64, player_y: f64
         
     ){
         // ball should invert value when collides with right wall, top, and bottom, and with the player
