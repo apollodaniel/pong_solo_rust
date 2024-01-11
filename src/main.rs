@@ -29,7 +29,7 @@ fn main() {
     let mut player_y: f64 = (WINDOW_HEIGHT / 2.0) - (PLAYER_HEIGHT / 2.0); 
     let mut player_x: f64 = 100.0; 
     let mut player_direction = (false,false,false,false);
-    let player_speed = 600.0;
+    let player_speed = 400.0;
     
     const BALL_SIZE: f64 = 50.0;
     let mut ball_x = (WINDOW_WIDTH / 2.0)  - (BALL_SIZE / 2.0);
@@ -37,7 +37,7 @@ fn main() {
 
     let mut ball_y_direction = if rand::thread_rng().gen_bool(0.5){1.0}else{-1.0};
     let mut ball_x_direction = if rand::thread_rng().gen_bool(0.5){1.0}else{-1.0};
-    let mut ball_speed = 300.0;
+    let mut ball_speed = 400.0;
 
     let mut last_time = Instant::now();
     while let Some(event) = window.next(){
@@ -87,18 +87,23 @@ fn main() {
             &player_speed,
             player_direction
         );
-        move_ball(&mut ball_x, &mut ball_y, ball_speed, &mut ball_x_direction, &mut ball_y_direction, delta_time);
+        move_ball(&mut ball_x, &mut ball_y, ball_speed, &mut ball_x_direction, &mut ball_y_direction, delta_time,player_x, player_y,player_direction);
     }
 
-    fn move_ball(ball_x: &mut f64, ball_y: &mut f64, ball_speed: f64, ball_x_direction: &mut f64,ball_y_direction: &mut f64, delta_time: f64){
+    fn move_ball(ball_x: &mut f64, ball_y: &mut f64, ball_speed: f64, ball_x_direction: &mut f64,ball_y_direction: &mut f64, delta_time: f64, 
+        player_x: f64, player_y: f64, player_direction: (bool, bool, bool, bool)
+        
+    ){
         // ball should invert value when collides with right wall, top, and bottom, and with the player
         // when interacts with the left wall the game might close
         let mut ball_x_movement = ball_speed * *ball_x_direction *  delta_time;
         let mut ball_y_movement = ball_speed * *ball_y_direction *delta_time;
 
         // horizontal collision
-        if (*ball_x + ball_x_movement) >= (WINDOW_WIDTH - BALL_SIZE) {
-            // when touches right
+        if (*ball_x + ball_x_movement) >= (WINDOW_WIDTH - BALL_SIZE) || (*ball_x + ball_x_movement) <= (PLAYER_WIDTH + player_x)
+        && (*ball_y + BALL_SIZE) > player_y && (*ball_y + BALL_SIZE) < (player_y + PLAYER_HEIGHT)
+        {
+            // when touches right or touches player
             ball_x_movement *= -1.0;
             *ball_x_direction *= -1.0;
         }else if (*ball_x + ball_x_movement) <= 0.0{
