@@ -29,7 +29,7 @@ fn main() {
     let mut player_y: f64 = (WINDOW_HEIGHT / 2.0) - (PLAYER_HEIGHT / 2.0); 
     let mut player_x: f64 = 100.0; 
     let mut player_direction = (false,false,false,false);
-    let player_speed = 400.0;
+    let mut player_speed = 400.0;
     
     const BALL_SIZE: f64 = 50.0;
     let mut ball_x = (WINDOW_WIDTH / 2.0)  - (BALL_SIZE / 2.0);
@@ -37,7 +37,7 @@ fn main() {
 
     let mut ball_y_direction = if rand::thread_rng().gen_bool(0.5){1.0}else{-1.0};
     let mut ball_x_direction = if rand::thread_rng().gen_bool(0.5){1.0}else{-1.0};
-    let ball_speed = 400.0;
+    let mut ball_speed = 400.0;
 
     let mut last_time = Instant::now();
     const FONT_SIZE: u32 = 32;
@@ -109,16 +109,16 @@ fn main() {
             &player_speed,
             player_direction
         );
-        move_ball(&mut ball_x, &mut ball_y, ball_speed, &mut ball_x_direction, &mut ball_y_direction, delta_time,player_x, player_y,&mut score,&mut score_text);
+        move_ball(&mut ball_x, &mut ball_y, &mut ball_speed, &mut ball_x_direction, &mut ball_y_direction, delta_time,player_x, player_y,&mut score,&mut score_text,&mut player_speed);
     }
 
-    fn move_ball(ball_x: &mut f64, ball_y: &mut f64, ball_speed: f64, ball_x_direction: &mut f64,ball_y_direction: &mut f64, delta_time: f64, 
-        player_x: f64, player_y: f64,score: &mut u16, score_text: &mut String
+    fn move_ball(ball_x: &mut f64, ball_y: &mut f64, ball_speed: &mut f64, ball_x_direction: &mut f64,ball_y_direction: &mut f64, delta_time: f64, 
+        player_x: f64, player_y: f64,score: &mut u16, score_text: &mut String, player_speed: &mut f64
     ){
         // ball should invert value when collides with right wall, top, and bottom, and with the player
         // when interacts with the left wall the game might close
-        let mut ball_x_movement = ball_speed * *ball_x_direction *  delta_time;
-        let mut ball_y_movement = ball_speed * *ball_y_direction *delta_time;
+        let mut ball_x_movement = *ball_speed * *ball_x_direction *  delta_time;
+        let mut ball_y_movement = *ball_speed * *ball_y_direction *delta_time;
 
         // horizontal collision
         if (*ball_x + ball_x_movement) >= (WINDOW_WIDTH - BALL_SIZE)
@@ -134,6 +134,8 @@ fn main() {
             *ball_x_direction *= -1.0;
             *score += 1;
             *score_text = format!("Score: {}", score);
+            *ball_speed += 50.0;
+            *player_speed += 20.0;
         }
 
         if (*ball_x + ball_x_movement) <= 0.0{
