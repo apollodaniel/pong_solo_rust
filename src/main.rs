@@ -1,7 +1,7 @@
 use std::{time::Instant, process::exit};
 
 use piston::{ButtonEvent, Key, EventLoop};
-use piston_window::{clear, rectangle, ellipse, text, CharacterCache, glyph_cache::{self, rusttype::GlyphCache}, Transformed, types::FontSize, TextureSettings, Glyphs};
+use piston_window::{clear, rectangle, ellipse, text, CharacterCache, Transformed};
 use rand::Rng;
 
 fn main() {
