@@ -18,7 +18,7 @@ fn main() {
     .exit_on_esc(true)
     .build()
     .expect("Error building piston window");
-    window.set_max_fps(60);
+    window.set_max_fps(1);
 
     const PLAYER_HEIGHT: f64 = 250.0;
     const PLAYER_WIDTH: f64 = 30.0;
